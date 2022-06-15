@@ -1,4 +1,5 @@
 import 'package:ecommerce_app/utilities/enums.dart';
+import 'package:ecommerce_app/utilities/routes.dart';
 import 'package:ecommerce_app/views/widgets/main_button.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -13,15 +14,24 @@ class AuthPage extends StatefulWidget {
 class _AuthPageState extends State<AuthPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
+  final _emailFocusNode = FocusNode();
   final _passwordController = TextEditingController();
+  final _passwordFocusNode = FocusNode();
   final _confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    super.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+  }
 
   var _authType = AuthFormType.login;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false, //new line
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Padding(
           padding:
@@ -43,6 +53,10 @@ class _AuthPageState extends State<AuthPage> {
                 ),
                 TextFormField(
                   controller: _emailController,
+                  focusNode: _emailFocusNode,
+                  onEditingComplete: () =>
+                      FocusScope.of(context).requestFocus(_passwordFocusNode),
+                  textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.emailAddress,
                   validator: (val) =>
                       val!.isEmpty ? 'Please enter your email' : null,
@@ -55,6 +69,7 @@ class _AuthPageState extends State<AuthPage> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
+                  focusNode: _passwordFocusNode,
                   obscureText: true,
                   validator: (val) =>
                       val!.isEmpty ? 'Please enter your password' : null,
@@ -89,7 +104,12 @@ class _AuthPageState extends State<AuthPage> {
                 const SizedBox(height: 24),
                 MainButton(
                   text: _authType == AuthFormType.login ? 'Login' : 'Register',
-                  onTap: () {},
+                  onTap: () {
+                    if (_formKey.currentState!.validate()) {
+                      debugPrint('Authenticated');
+                      Navigator.of(context).pushNamed(AppRoutes.bottomNavBarRoute);
+                    }
+                  },
                 ),
                 const SizedBox(
                   height: 20,
@@ -101,6 +121,7 @@ class _AuthPageState extends State<AuthPage> {
                         : 'Already have an account? Login'),
                     onTap: () {
                       setState(() {
+                        _formKey.currentState!.reset();
                         if (_authType == AuthFormType.login) {
                           _authType = AuthFormType.register;
                         } else {
